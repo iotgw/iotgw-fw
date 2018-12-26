@@ -1,0 +1,67 @@
+language: python
+python:
+  - 2.7
+
+node_js: 6
+
+os:
+  - linux
+
+
+addons:
+  apt:
+    packages:
+      - gperf
+      - python
+      - python-serial
+
+before_install:
+  # Save path to the git respository
+  - PROJECT_PATH=$(pwd)
+  - CI_COMMIT_SHA=$(git rev-parse HEAD)
+
+install:
+    # Install ESP32 toochain following steps as desribed
+  # in http://esp-idf.readthedocs.io/en/latest/linux-setup.html
+  #
+  # Get required packages - already done above, see addons: apt: packages:
+  # - sudo apt-get install git wget make libncurses-dev flex bison gperf python python-serial
+  # Prepare directory for the toolchain
+  - mkdir -p ~/esp
+  - cd ~/esp
+  # Download binary toolchain for the ESP32
+  - wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+  - tar -xzf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+  # Get ESP-IDF from github
+  - git clone --recursive https://github.com/espressif/esp-idf.git
+  # Set the path to ESP-IDF directory
+  - export IDF_PATH=~/esp/esp-idf
+  - pip install -r $IDF_PATH/requirements.txt
+  # Setup build tool: xtensa-esp32-elf and idf.py
+  - export PATH=$PATH:$HOME/esp/xtensa-esp32-elf/bin:$IDF_PATH/tools
+  - cd $PROJECT_PATH/components/iotgw-webfrontend
+  - npm install
+  - npm run build
+  - cd $PROJECT_PATH
+  - pip install -r docs/requirements.txt
+
+script:
+    - make defconfig
+    - make -j16
+    - cd docs/en
+    - make html
+    - touch _build/html/.nojekyll
+    - cd ../..
+env:
+  global:
+    - secure: "lKK4HtOyUcd4qCzAOpfKbvnS7p79/WeTcr8AJr+4fS4MOBBEaVjQWSkktwx8tjzsmrrHLm83pT0G8OMOERoK57Pg+td4sdFX62Fy5VwBUV8b+mUkwmBxqZzGPAUJftH5/ur20S4KTL7AUbEIIwLgErvipGYjqrSAO5avjkXMBXfskAnQhUxo4MnFTM74uoBE+U4TGUBJb1a6g0aA8jCePv8ZNkyWrm2cpEqMCEMgpiNdV1d1OVAYyjitjxv+qq4vUr4mt7AKBxFvGbxJWRDcUa54QPBp2IO3b6UMBVEnf3ml6pdzm1YnPX3TMacewvPCYyO0WSkTVOFvho1tZDqiO6+UlqMTbP36uWumx6TSOAAf7/AXczpc1lHaujH4cKWku1gPwSoXSfDbyHkRBKa2QtfqhSqMv5o675zBKuBoUV80N790D2bjGewjE63LVcBy9ZgmrYrBpk4HAfsgdWrDmmKAoxTKmQqmsv9NWmwxL2WOHVDspJME47gNFLBwEpVrzCv8YeIyEKqQyJwXPXzqOjBrfZ2ncTjZ1m9z49JYbouzMSXxl+t0H7DvDV2pykWtvMi0QkcSbGem3cLUVB9blQ7Fc9IOYREdn1X8fpkY9Z0qn6+TVzvoNSlk1foKe6MWOBtmDaDjSuH/DJwz5dimIQ+h7ZzWA3MiisI4ICMTeGI="
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GHTOKEN  # Set in the settings page of your repository, as a secure variable
+  keep-history: true
+  local-dir: docs/en/_build/html
+  email: tuanpm@live.com
+  name: Tuan
+  on:
+    branch: master
