@@ -1,5 +1,5 @@
-Open Source IoT Gateway Documentation
-=====================================
+Open Source IoT Gateway
+=======================
 :link_to_translation:`vi:[Việt Nam]`
 
 .. toctree::
