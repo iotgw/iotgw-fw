@@ -51,6 +51,7 @@ script:
     - cd docs/en
     - make html
     - touch _build/html/.nojekyll
+    - echo "docs.iotgw.vn" >> _build/html/CNAME
     - cd ../..
 env:
   global:
